@@ -34,7 +34,7 @@ const StartServer = function (publicDirs, port) {
     else publics = publicDirs;
     let fileserves = [];
     publics.forEach(function (publicDir) {
-        var file = new static.Server(publicDir, { cache: 0, gzip: /^\/text/, serverInfo: "xes/its-static", headers: { 'X-XES-ITS': '1' }, indexFile: "index.htm" });
+        var file = new static.Server(publicDir, { cache: 0, gzip: /^\/text/, serverInfo: "xes/its-static", headers: { 'X-XES-ITS': '1' }, indexFile: "index.html" });
         fileserves.push(file);
     });
 
@@ -66,11 +66,18 @@ const StartServer = function (publicDirs, port) {
             }
             lookup(0);
         }
+        response.addListener('finish', function () {
+            request.profile.endTime = Date.now();
+            request.profile.costTime = request.profile.endTime - request.profile.startTime;
+            console.log('GET  ' + request.url + '  - ' + request.profile.costTime +' ms')
+        })
         request.addListener('end', function () {
             //
             // Serve files!
             //
-
+            request.profile = {
+                startTime: Date.now()
+            };
             serveFiles(fileserves);
 
             // file.serve(request, response, function (err, result) {
